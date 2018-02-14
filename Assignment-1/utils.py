@@ -4,9 +4,13 @@ import numpy as np
 
 
 def mean_squared_error(y_true: List[float], y_pred: List[float]) -> float:
+    print("ytrue = ", y_true)
+    print("ypred = ", y_pred)
     assert len(y_true) == len(y_pred)
-
-    raise NotImplementedError
+    yt = np.array(y_true)
+    yp = np.array(y_pred)
+    mse = np.sum( np.power(yt-yp, 2) )/ len(y_pred)
+    return mse
 
 
 def f1_score(real_labels: List[int], predicted_labels: List[int]) -> float:
@@ -38,19 +42,54 @@ def gaussian_kernel_distance(
     raise NotImplementedError
 
 
-def normalize(features: List[List[float]]) -> List[List[float]]:
-    """
-    normalize the feature vector for each sample . For example,
-    if the input features = [[3, 4], [1, -1], [0, 0]],
-    the output should be [[0.6, 0.8], [0.707107, -0.707107], [0, 0]]
-    """
-    raise NotImplementedError
+class NormalizationScaler:
+    def __init__(self):
+        pass
+
+    def __call__(self, features: List[List[float]]) -> List[List[float]]:
+        """
+        normalize the feature vector for each sample . For example,
+        if the input features = [[3, 4], [1, -1], [0, 0]],
+        the output should be [[0.6, 0.8], [0.707107, -0.707107], [0, 0]]
+        """
+        raise NotImplementedError
 
 
-def min_max_scale(features: List[List[float]]) -> List[List[float]]:
+class MinMaxScaler:
     """
-    normalize the feature vector for each sample . For example,
-    if the input features = [[2, -1], [-1, 5], [0, 0]],
-    the output should be [[1, 0], [0, 1], [0.333333, 0.16667]]
+    You should keep some states inside the object.
+    You can assume that the parameter of the first __call__
+        must be the training set.
+
+    Note:
+        1. you may assume the parameters are valid when __call__
+            is being called the first time (you can find min and max).
+
+    Example:
+        train_features = [[0, 10], [2, 0]]
+        test_features = [[20, 1]]
+
+        scaler = MinMaxScale()
+        train_features_scaled = scaler(train_features)
+        # now train_features_scaled should be [[0, 1], [1, 0]]
+
+        test_features_sacled = scaler(test_features)
+        # now test_features_scaled should be [[10, 0.1]]
+
+        new_scaler = MinMaxScale() # creating a new scaler
+        _ = new_scaler([[1, 1], [0, 0]]) # new trainfeatures
+        test_features_scaled = new_scaler(test_features)
+        # now test_features_scaled should be [[20, 1]]
+
     """
-    raise NotImplementedError
+
+    def __init__(self):
+        pass
+
+    def __call__(self, features: List[List[float]]) -> List[List[float]]:
+        """
+        normalize the feature vector for each sample . For example,
+        if the input features = [[2, -1], [-1, 5], [0, 0]],
+        the output should be [[1, 0], [0, 1], [0.333333, 0.16667]]
+        """
+        raise NotImplementedError
