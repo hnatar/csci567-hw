@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 class Perceptron:
 
-    def __init__(self, nb_features=2, max_iteration=100, margin=1e-4):
+    def __init__(self, nb_features=2, max_iteration=10, margin=1e-4):
         '''
             Args : 
             nb_features : Number of features
@@ -16,7 +16,6 @@ class Perceptron:
             many iterations even if it is not converged 
             margin is the min value, we use this instead of comparing with 0 in the algorithm
         '''
-        
         self.nb_features = 2
         self.w = [0 for i in range(0,nb_features+1)]
         self.norm_w = 0
@@ -55,13 +54,9 @@ class Perceptron:
             current_iteration += 1
         return False
 
-
-
-
-    
     def reset(self):
         self.w = [0 for i in range(0,self.nb_features+1)]
-        
+ 
     def predict(self, features: List[List[float]]) -> List[int]:
         '''
             Args  : 
@@ -79,7 +74,6 @@ class Perceptron:
             else:
                 labels.append(-1)
         return labels
-
 
     def get_weights(self) -> Tuple[List[float], float]:
         return self.w

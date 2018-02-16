@@ -55,7 +55,7 @@ def gaussian_kernel_distance(
 ) -> float:
     p1, p2 = np.array(point1), np.array(point2)
     d = np.dot(p1-p2, p1-p2)
-    return -np.exp( -0.5 * np.sqrt(d*d) )
+    return -np.exp( -0.5 * np.sqrt(d) )
 
 
 class NormalizationScaler:
@@ -121,6 +121,7 @@ class MinMaxScaler:
         """ Normalize and return """
         NormalizedVectors = []
         for vec in features:
+            """ numpy elementwise divison """
             NormalizedVectors.append( (np.array(vec) - self.range_min)/self.diff )
         return NormalizedVectors
 

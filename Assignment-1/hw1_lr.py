@@ -12,8 +12,6 @@ import scipy
 
 class LinearRegression:
     def __init__(self, nb_features: int):
-        """ REMOVE THIS BEFORE SUBMIT """
-        numpy.set_printoptions(precision=2)
         self.nb_features = nb_features
         """ Stores feature weights + bias as
             column vector after training """
@@ -59,8 +57,6 @@ class LinearRegression:
         return numpy.asarray(Y).squeeze()
 
     def get_weights(self) -> List[float]:
-        """TODO : Complete this function"""
-
         """
         for a model y = 1 + 3 * x_0 - 2 * x_1,
         the return value should be [1, 3, -2].
@@ -116,8 +112,6 @@ class LinearRegressionWithL2Loss:
         return numpy.asarray(Y).squeeze()
 
     def get_weights(self) -> List[float]:
-        """TODO : Complete this function"""
-
         """
         for a model y = 1 + 3 * x_0 - 2 * x_1,
         the return value should be [1, 3, -2].

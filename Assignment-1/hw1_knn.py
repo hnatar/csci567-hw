@@ -19,15 +19,19 @@ class KNN:
         self.trainLabel = None
 
     def train(self, features: List[List[float]], labels: List[int]):
+        """ just carry dataset """
         self.trainX = features
         self.trainLabel = labels
 
     def predict(self, features: List[List[float]]) -> List[int]:
         Predictions = []
         for test in features:
+            """ each pair is (distance to example, label of example) """
             Pairs = []
             for i, example in enumerate(self.trainX):
                 Pairs.append( (self.distance_function(test, example), self.trainLabel[i],) )
+            """ sort pairs by distance to example, so closest examples appear first.
+                then, 'trim' to keep only first k examples for kNN. Then find mode / most frequent label """
             Pairs = sorted(Pairs, key = lambda x: x[0])[: self.k+1]
             PredictLabels = [y for (x,y) in Pairs]
             Predictions.append( scipy.stats.mode(PredictLabels).mode[0] )
