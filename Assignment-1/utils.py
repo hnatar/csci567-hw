@@ -16,19 +16,19 @@ def f1_score(real_labels: List[int], predicted_labels: List[int]) -> float:
     f1 score: https://en.wikipedia.org/wiki/F1_score
     """
     assert len(real_labels) == len(predicted_labels)
-    precision = 0.0
-    recall = 0.0
-    for i, x in enumerate(predicted_labels):
-        if x == real_labels[i]:
-            precision += 1.0
-    for i, x in enumerate(real_labels):
-        if x == predicted_labels[i]:
-            recall += 1.0
-    precision = precision / len(predicted_labels)
-    recall = recall / len(real_labels)
-    if precision + recall == 0:
-        return 0
-    return 2.0 * precision * recall / (precision + recall)
+    tp, fp, fn = 0.0, 0.0, 0.0
+    for i, label in enumerate(predicted_labels):
+        if label == real_labels[i] and label == 1:
+            tp += 1.0
+        else:
+            if label == 1:
+                fp += 1.0
+            else:
+                fn += 1.0
+    num = 2.0 * tp
+    den = num + fn + fp
+    return num/den
+
 
 def polynomial_features(
         features: List[List[float]], k: int
@@ -40,22 +40,28 @@ def polynomial_features(
 
 
 def euclidean_distance(point1: List[float], point2: List[float]) -> float:
-    p1, p2 = np.array(point1), np.array(point2)
-    d = np.dot(p1-p2, p1-p2)
+    assert len(point1) == len(point2)
+    p1_minus_p2 = []
+    for i in range(len(point1)):
+        p1_minus_p2.append( point1[i] - point2[i] )
+    d = inner_product_distance(p1_minus_p2, p1_minus_p2)
     return np.sqrt(d)
 
 
 def inner_product_distance(point1: List[float], point2: List[float]) -> float:
-    p1, p2 = np.array(point1), np.array(point2)
-    return np.dot(p1, p2)
+    assert len(point1) == len(point2)
+    r = 0.0
+    for i in range(len(point1)):
+        r += point1[i] * point2[i]
+    return r
 
 
 def gaussian_kernel_distance(
         point1: List[float], point2: List[float]
 ) -> float:
-    p1, p2 = np.array(point1), np.array(point2)
-    d = np.dot(p1-p2, p1-p2)
-    return -np.exp( -0.5 * np.sqrt(d) )
+    assert len(point1) == len(point2)
+    d = euclidean_distance(point1, point2)
+    return -np.exp( -0.5 * d * d )
 
 
 class NormalizationScaler:
