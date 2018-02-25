@@ -207,8 +207,14 @@ def OVR_train(X, y, C, w0=None, b0=None, step_size=0.5, max_iterations=1000):
         b = b0
 
     """
-    TODO: add your code here
+    For each class, train a binary classifier to recognize
+    points belonging to class.
     """
+    for c in range(0, C):
+        pick_class = np.vectorize(lambda x: 1 if x==c else 0)
+        y2 = pick_class(y)
+        w[c], b[c] = binary_train(X, y2, w0, b0, step_size, max_iterations)
+
     assert w.shape == (C, D), 'wrong shape of weights matrix'
     assert b.shape == (C,), 'wrong shape of bias terms vector'
     return w, b
@@ -235,8 +241,12 @@ def OVR_predict(X, w, b):
     preds = np.zeros(N) 
     
     """
-    TODO: add your code here
+    Pick max. valued class
     """
+    ovr_predictions = np.zeros((C, N))
+    for c in range(0, C):
+        ovr_predictions[c] = binary_predict(X, w[c], b[c])
+    preds = np.argmax(ovr_predictions, axis=0)
 
     assert preds.shape == (N,)
     return preds
