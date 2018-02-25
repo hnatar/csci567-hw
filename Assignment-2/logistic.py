@@ -44,8 +44,31 @@ def binary_train(X, y, w0=None, b0=None, step_size=0.5, max_iterations=1000):
 
 
     """
-    TODO: add your code here
+    With usual notation, Log Likelihood = sum over k,
+     y_k * log(sigmoid(wTx_k + b)) + (1-y_k) * log(1-sigmoid( wTx_k+b ))
+
+    Gradient wrt b: SUM y_k - sigmoid(wTx_k + b)
+                    Each individual contribution is an element of the
+                    column vector resulting from sigmoid(Xw + b)
+                    (b should be a column vector with all values = bias)
+
+    Gradient wrt w: SUM x_k * (y_k - sigmoid(wTx_k + b)) 
+                    Can be viewed as a linear combination of x_k,
+                    where each x_k scaled according to above.
     """
+    sigmoid_array = np.vectorize(sigmoid)
+    for i in range(0, max_iterations):
+        Points = np.matmul(X,w) + b
+        Predict = sigmoid_array(Points)
+        Gradient_b = y - Predict
+        """
+        A*b will scale i-th column of matrix A by i-th element
+        So vector x_0 is scaled with 0th element of Gradient_b,
+        x_1 with 1st element and so on
+        """
+        Gradient_w = (X.transpose()  * Gradient_b).transpose()
+        w += step_size * np.sum(Gradient_w, axis=0)/float(N)
+        b += step_size * np.sum(Gradient_b, axis=0)/float(N)
 
     assert w.shape == (D,)
     return w, b
@@ -65,8 +88,14 @@ def binary_predict(X, w, b):
 
 
     """
-    TODO: add your code here
-    """      
+    y_predicted = sigmoid(wTx+b), =1 if >= 0.5
+    """
+    LabelPoints = np.vectorize(lambda x: x >= 0.5)
+    sigmoid_array = np.vectorize(sigmoid)
+    Points = sigmoid_array(np.matmul(X,w) + b)
+    preds = LabelPoints(Points)
+
+
     assert preds.shape == (N,) 
     return preds
 
