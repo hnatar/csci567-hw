@@ -138,10 +138,29 @@ def multinomial_train(X, y, C,
     if b0 is not None:
         b = b0
 
-
     """
-    TODO: add your code here
+    Simple SGD
     """
+    for i in range(0, max_iterations):
+        random_sample = np.random.random_integers(0, N-1)
+        class_label = y[random_sample]
+        onehot = np.zeros(C)
+        onehot[class_label] = 1
+        assert onehot.shape == (C,)
+        temp1 = np.matmul( X[random_sample], w.transpose() )
+        assert temp1.shape == (C,)
+        Points2 = temp1 + b
+        assert Points2.shape == (C,)
+        P2 = np.exp(Points2)
+        assert P2.shape == (C,)
+        P3 = P2 / np.sum(P2, axis=0)
+        assert P3.shape == (C,)
+        P4 = P3 - onehot
+        assert P4.shape == (C,)
+        XXn =np.array([X[random_sample]]*C).transpose()
+        update = np.multiply(P4, XXn).transpose()
+        assert update.shape == (C,D)
+        w -= step_size * update
 
     assert w.shape == (C, D)
     assert b.shape == (C,)
@@ -168,8 +187,11 @@ def multinomial_predict(X, w, b):
     preds = np.zeros(N) 
 
     """
-    TODO: add your code here
-    """   
+    predict
+    """
+    temp1 = np.matmul( X, w.transpose() ) + b
+    assert temp1.shape == (N,C)
+    preds = np.argmax(temp1, axis=1)
 
     assert preds.shape == (N,)
     return preds
