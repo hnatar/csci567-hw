@@ -2,6 +2,11 @@ import json
 import numpy as np
 
 
+# Takes NxD and Nx1 and gives NxD where each row multiplied
+# by corresponding row in Nx1
+def elementwise_mul(a,b):
+    return np.multiply(a.transpose(), b).transpose()
+
 ###### Q1.1 ######
 def objective_function(X, y, w, lamb):
     """
@@ -14,10 +19,11 @@ def objective_function(X, y, w, lamb):
     Return:
     - train_obj: the value of objective function in SVM primal formulation
     """
-    # you need to fill in your solution here
-
-
-    return obj_value
+    w_2norm = np.linalg.norm(w)
+    N = float(X.shape[0])
+    reg_term = 0.5*lamb*w_2norm*w_2norm
+    loss_term = np.maximum(0.0, 1.0 - elementwise_mul(np.matmul(X,w), y) )
+    return reg_term + np.sum(loss_term)/N
 
 
 ###### Q1.2 ######
@@ -45,10 +51,22 @@ def pegasos_train(Xtrain, ytrain, w, lamb, k, max_iterations):
 
     for iter in range(1, max_iterations + 1):
         A_t = np.floor(np.random.rand(k) * N).astype(int)  # index of the current mini-batch
-
-        # you need to fill in your solution here
-
-
+        nt = float(1.0/float(iter)*lamb)
+        w0 = (1.0 - nt*lamb)*w
+        for i in A_t:
+            """ (matrix version shape error) """
+            res = ytrain[i]*np.dot(Xtrain[i], w)
+            if res < 1:
+                yx = ytrain[i]*Xtrain[i]
+                yx = yx.reshape(-1,1)
+                w0 += (nt/float(k)) * yx
+        w0norm = np.linalg.norm(w0)
+        if w0norm == 0:
+            w = w0
+        else:
+            factor = min(1.0, (1.0/np.sqrt(lamb))/w0norm)
+            w = factor*w0
+        train_obj.append(objective_function(Xtrain, ytrain, w, lamb))
     return w, train_obj
 
 
@@ -59,15 +77,16 @@ def pegasos_test(Xtest, ytest, w, t = 0.):
     - Xtest: A list of num_test elements, where each element is a list of D-dimensional features.
     - ytest: A list of num_test labels
     - w_l: a numpy array of D elements as a D-dimension vector, which is the weight vector of SVM classifier and learned by pegasos_train()
-    - t: threshold, when you get the prediction from SVM classifier, it should be real number from -1 to 1. Make all prediction less than t to -1 and otherwise make to 1 (Binarize)
-
+    - t: threshold, when you get the prediction from SVM classifier, it should be real number from -1 to 1. Make all prediction less than t to -1 and otherwise make to 1 (Binariz
     Returns:
     - test_acc: testing accuracy.
     """
-    # you need to fill in your solution here
-
-
-    return test_acc
+    predict = np.matmul(Xtest, w) - t
+    p2 = np.sign(predict)
+    p2[abs(p2)<0.1] = 1
+    diff = p2.flatten()-ytest
+    mistakes = np.count_nonzero(diff)
+    return float(len(diff)-mistakes)/float(len(diff))
 
 
 """
