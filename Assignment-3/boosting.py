@@ -7,8 +7,8 @@ from abc import abstractmethod
 
 class Boosting(Classifier):
   # Boosting from pre-defined classifiers
-    def __init__(self, clfs: Set[Classifier], T=0):
-        self.clfs = clfs
+    def __init__(self, clfs: List[Classifier], T=0):
+        self.clfs = list(clfs)
         self.num_clf = len(clfs)
         if T < 1:
             self.T = self.num_clf
@@ -24,19 +24,24 @@ class Boosting(Classifier):
         return
 
     def predict(self, features: List[List[float]]) -> List[int]:
-        assert len(self.betas) == len(self.clfs_picked)
-        r = np.zeros(shape=(1, len(features)) )
+        r = [0]*len(features)
+
         for t in range(0, len(self.clfs_picked)):
-            preds = np.array(self.clfs_picked[t].predict(features))
-            r += self.betas[t] * preds
-        r[r==0.0] = 1
-        r[r<0.0] = -1
-        r[r>0.0] = 1
-        return r.astype(int)
+            preds = self.clfs_picked[t].predict(features)
+            print('preds=',preds)
+            for n in range(0, len(features)):
+                r[n] += self.betas[t] * preds[n]
+
+        for i in range(0, len(r)):
+            if r[i]<0:
+                r[i] = -1
+            else:
+                r[i] = 1
+        return r
         
 
 class AdaBoost(Boosting):
-    def __init__(self, clfs: Set[Classifier], T=0):
+    def __init__(self, clfs: List[Classifier], T=0):
         Boosting.__init__(self, clfs, T)
         self.clf_name = "AdaBoost"
         return
@@ -46,20 +51,20 @@ class AdaBoost(Boosting):
         ht=None
         et=None
         for iterations in range(0, self.T):
-            for classifier in self.clfs:
+            for t in range(0, self.num_clf):
                 val = 0
-                predictions = classifier.predict(features)
+                predictions = self.clfs[t].predict(features)
                 for i in range(0, len(predictions)):
                     if predictions[i] != labels[i]:
                         val += sample_weights[i]
                 if et == None or val<et:
                     et = val
-                    ht = classifier
+                    ht = t
             bt = 0.5*np.log( (1.0-et)/(et) )
-            self.clfs_picked.append(ht)
+            self.clfs_picked.append(self.clfs[ht])
             self.betas.append(bt)
 
-            predictions = ht.predict(features)
+            predictions = self.clfs[ht].predict(features)
             for i in range(len(predictions)):
                 if predictions[i] == labels[i]:
                     sample_weights[i] *= np.exp(-bt)
@@ -75,7 +80,7 @@ class AdaBoost(Boosting):
 
 
 class LogitBoost(Boosting):
-    def __init__(self, clfs: Set[Classifier], T=0):
+    def __init__(self, clfs: List[Classifier], T=0):
         Boosting.__init__(self, clfs, T)
         self.clf_name = "LogitBoost"
         return
@@ -87,21 +92,21 @@ class LogitBoost(Boosting):
         for iterations in range(0, self.T):
             zt = [0]*len(features)
             for n in range(0, len(features)):
-                zt[n] = ((labels[n]+1.0)/2.0 - pi[n])/(pi[n]*(1-pi[n]))
+                zt[n] = (0.5*(labels[n]+1.0) - pi[n])/(pi[n]*(1.0-pi[n]))
                 sample_weights[n] = pi[n]*(1-pi[n])
             ht = None
             et = None
-            for classifier in self.clfs:
+            for hyp in range(0, len(self.clfs)):
                 val = 0
-                predictions = classifier.predict(features)
+                predictions = self.clfs[hyp].predict(features)
                 for samp in range(0, len(features)):
                     val += sample_weights[samp]*(zt[samp]-predictions[samp])*(zt[samp]-predictions[samp])
-                if et == None or val < et:
+                if et == None or val <= et:
                     et = val
-                    ht = classifier
-            self.clfs_picked.append(ht)
+                    ht = hyp
+            self.clfs_picked.append(self.clfs[ht])
             self.betas.append(0.5)
-            predictions = ht.predict(features)
+            predictions = self.clfs[ht].predict(features)
             for i in range(0, len(predictions)):
                 ft[i] += 0.5 * predictions[i]
                 pi[i] = 1.0 / (1+np.exp(-2.0*ft[i]))

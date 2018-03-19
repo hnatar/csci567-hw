@@ -108,6 +108,7 @@ Ada_2_3_acc = accuracy_score(Ada_2_3.predict(features_2), labels_2)
 Log_2_3_acc = accuracy_score(Log_2_3.predict(features_2), labels_2)
 print('Ada:', Ada_2_2_acc, Ada_2_3_acc)
 print('Log:', Log_2_3_acc)
+print(Log_2_3_acc)
 if Ada_2_2_acc == 0.75 and Ada_2_3_acc == 1 and Log_2_3_acc == 1:
 	print('Correct training accuracies')
 else:
