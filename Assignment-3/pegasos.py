@@ -83,7 +83,7 @@ def pegasos_test(Xtest, ytest, w, t = 0.):
     """
     predict = np.matmul(Xtest, w) - t
     p2 = np.sign(predict)
-    p2[abs(p2)<0.1] = 1
+    p2[abs(p2)<0.1] = -1
     diff = p2.flatten()-ytest
     mistakes = np.count_nonzero(diff)
     return float(len(diff)-mistakes)/float(len(diff))
