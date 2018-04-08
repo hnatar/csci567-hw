@@ -37,8 +37,42 @@ class KMeans():
         # - return (means, membership, number_of_updates)
 
         # DONOT CHANGE CODE ABOVE THIS LINE
-        raise Exception(
-            'Implement fit function in KMeans class (filename: kmeans.py')
+        random_k = np.random.random_integers(0, N, self.n_cluster)
+        """ Centres of clusters """
+        mu_k = x[random_k]
+        """ Current cluster of n-th sample """
+        R = np.array( [0]*N )
+        """ Initialize J """
+        J_old = 0
+        for i in range(0, self.max_iter):
+            J_new = 0
+            """ Find closest cluster for each sample """
+            for n in range(0, N):
+                distance_xn = np.sum( (mu_k - x[n])**2, axis=1 )
+                R[n] = np.argmin( distance_xn )
+                J_new += distance_xn[ R[n] ]
+            """ Check if significant J change """
+            print("Jnew=%.2f Jold=%.2f" % (J_new, J_old))
+            if np.abs(J_new-J_old) < N*self.e:
+                return (mu_k, np.array(R), i)
+            else:
+                J_old = J_new
+            """ Update cluster centers """
+            def pick_cluster(arr, k):
+                matches = np.vectorize(lambda x: 1 if x==k else 0)
+                return matches(arr)
+            for k in range(0, self.n_cluster):
+                #print("cluster=", k)
+                #print("x=", x)
+                #print("R=", R)
+                #print("Rbool=", pick_cluster(R, k))
+                #print("to sum=", (x.transpose()*pick_cluster(R,k)).transpose() )
+                #kkk=input('')
+                upd = np.sum( (x.transpose()*pick_cluster(R,k)).transpose(), axis=0 )
+                divide = np.sum(pick_cluster(R,k))
+                if not divide == 0:
+                    mu_k[k] = upd/divide
+        return (mu_k, np.array(R), self.max_iter)
         # DONOT CHANGE CODE BELOW THIS LINE
 
 
@@ -84,9 +118,19 @@ class KMeansClassifier():
         # - assign labels to centroid_labels
 
         # DONOT CHANGE CODE ABOVE THIS LINE
-        raise Exception(
-            'Implement fit function in KMeansClassifier class (filename: kmeans.py')
-
+        centroids, centroid_x, _ = KMeans(n_cluster=self.n_cluster, max_iter=self.max_iter, e=self.e).fit(x)
+        centroid_labels = [0]*self.n_cluster
+        for i in range(0, self.n_cluster):
+            label_counts = dict()
+            for n in range(0, N):
+                if centroid_x[n]==i:
+                    if y[n] in label_counts:
+                        label_counts[y[n]] += 1
+                    else:
+                        label_counts[y[n]] = 1
+            centroid_labels[i] = max(label_counts, key=lambda i: label_counts[i])
+        centroid = np.array(centroids)
+        centroid_labels = np.array(centroid_labels)
         # DONOT CHANGE CODE BELOW THIS LINE
 
         self.centroid_labels = centroid_labels
@@ -118,6 +162,9 @@ class KMeansClassifier():
         # - return labels
 
         # DONOT CHANGE CODE ABOVE THIS LINE
-        raise Exception(
-            'Implement predict function in KMeansClassifier class (filename: kmeans.py')
+        prediction = [0]*N
+        for n in range(0, N):
+            closest = np.argmin( np.sum( (self.centroids-x[n])**2, axis=1) )
+            prediction[n] = self.centroid_labels[closest]
+        return np.array(prediction)
         # DONOT CHANGE CODE BELOW THIS LINE

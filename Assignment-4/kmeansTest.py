@@ -31,8 +31,10 @@ def transform_image(image, code_vectors):
     # - implement the function
 
     # DONOT CHANGE CODE ABOVE THIS LINE
-    raise Exception(
-        'Implement transform_image function (filename:kmeansTest.py')
+    for i in range(0, image.shape[0]):
+        for j in range(0, image.shape[1]):
+            image[i][j] = code_vectors[ np.argmin(np.sum( (code_vectors-image[i][j])**2, axis=1)) ]
+    return image
     # DONOT CHANGE CODE BELOW THIS LINE
 
 
