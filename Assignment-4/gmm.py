@@ -48,8 +48,25 @@ class GMM():
             # - compute variance and pi_k
 
             # DONOT MODIFY CODE ABOVE THIS LINE
-            raise Exception(
-                'Implement initialization of variances, means, pi_k using k-means')
+            print("=====:k-MEANS:=====")
+            """ Get mu_k-s and membership from k-Means """
+            means, kmeans_R, _ = KMeans(n_cluster=self.n_cluster, max_iter=self.max_iter, e=self.e).fit(x)
+            self.means = means
+            """ Count points in each cluster, set pi_k using that """
+            self.pi_k = np.zeros(self.n_cluster)
+            for i in range(0, self.n_cluster):
+                self.pi_k[i] = float( len(kmeans_R[kmeans_R==i]) ) / N
+            """ Initialize covariance """
+            cov = np.zeros(self.n_cluster * D * D).reshape( (self.n_cluster, D, D) )
+            for k in range(0, self.n_cluster):
+                N_k = float( len(kmeans_R[kmeans_R==k]) )
+                for n in range(0, N):
+                    if kmeans_R[n] == k:
+                        Y = (x[n]-self.means[k]).reshape(D,1)
+                        R1 = np.matmul( Y, Y.transpose() )
+                        cov[k] += R1
+                cov[k] = cov[k]/N_k
+            self.variances = cov
             # DONOT MODIFY CODE BELOW THIS LINE
 
         elif (self.init == 'random'):
@@ -59,8 +76,21 @@ class GMM():
             # - compute variance and pi_k
 
             # DONOT MODIFY CODE ABOVE THIS LINE
-            raise Exception(
-                'Implement initialization of variances, means, pi_k randomly')
+            print("=====:RANDOM:=====")
+            means = np.zeros(self.n_cluster * D).reshape( (self.n_cluster, D) )
+            """ Sample each dimension for mu_k-s uniformly from [0,1] """
+            for i in range(0, self.n_cluster):
+                means[i] = np.random.rand( D )
+            self.means = means
+            print(means)
+            """ Variance and priors """
+            self.variances = np.zeros(self.n_cluster * D * D).reshape( (self.n_cluster, D, D) )
+            for k in range(0, self.n_cluster):
+                self.variances[k] = np.identity( D )
+                print(self.variances[k])
+                print(" ")
+            input('')
+            self.pi_k = np.array( [1.0/self.n_cluster]*self.n_cluster )
             # DONOT MODIFY CODE BELOW THIS LINE
 
         else:
@@ -73,7 +103,57 @@ class GMM():
         # Hint: Try to seperate E & M step for clarity
 
         # DONOT MODIFY CODE ABOVE THIS LINE
-        raise Exception('Implement fit function (filename: gmm.py)')
+        def multivariate_gaussian_pdf(x, mean, cov):
+            D = x.shape[0]
+            cov_rank = np.linalg.matrix_rank(cov)
+            while cov_rank < D:
+                cov += 0.0001 * np.identity(D)
+                cov_rank = np.linalg.matrix_rank(cov)
+            cov_inv = np.linalg.inv(cov)
+            exp_value = -0.5 * np.matmul((x-mean).transpose(), np.matmul(cov_inv,x-mean))
+            return np.exp(exp_value)/(np.power(2*np.pi, 0.5*D)*np.sqrt(np.linalg.det(cov_inv)))
+        """ Compute the log-likelihood """
+        loglike = self.compute_log_likelihood(x)
+        print('def==',loglike)
+        #input('')
+        #input('')
+        Gamma = np.zeros(N*self.n_cluster).reshape( (N, self.n_cluster) )
+        i = 0   
+        
+        while i<self.max_iter:
+            #print("iteration=", i, " ", loglike)
+
+            """ E-step """
+
+            for n in range(0, N):
+                gamma_nk = np.array( [0.0]*self.n_cluster )
+                for k in range(0, self.n_cluster):
+                    gamma_nk[k] += self.pi_k[k] * multivariate_gaussian_pdf(x[n], self.means[k], self.variances[k])
+                gamma_nk = gamma_nk / np.sum(gamma_nk)
+                Gamma[n] = gamma_nk
+
+            """ M-step """
+            N_k = np.sum( Gamma, axis=0 )
+            for k in range(0, self.n_cluster):
+                """ Update for mean """
+                self.means[k] = np.zeros(D)
+                for n in range(0, N):
+                    self.means[k] += (Gamma[n][k]*x[n])/N_k[k]
+                """ Update for covariance """
+                self.variances[k] = np.zeros(D*D).reshape( (D,D) )
+                for n in range(0, N):
+                    temp = (x[n]-self.means[k]).reshape(D,1)
+                    self.variances[k] += Gamma[n][k]*np.matmul(temp, temp.transpose()) / N_k[k]
+            """ Update for pi_k """
+            self.pi_k = N_k/N
+            """ Compute updated log-likelihood """
+            newll = self.compute_log_likelihood(x)
+            if abs(newll - loglike) < self.e:
+                break
+            loglike = newll
+            i+=1
+            #input('')
+        return i
         # DONOT MODIFY CODE BELOW THIS LINE
 
     def sample(self, N):
@@ -112,5 +192,22 @@ class GMM():
         # - return the log-likelihood
         # Note: you can call this function in fit function (if required)
         # DONOT MODIFY CODE ABOVE THIS LINE
-        raise Exception('Implement compute_log_likelihood function in gmm.py')
+        def multivariate_gaussian_pdf(x, mean, cov):
+            D = x.shape[0]
+            cov_rank = np.linalg.matrix_rank(cov)
+            while cov_rank < D:
+                cov += 0.0001 * np.identity(D)
+                cov_rank = np.linalg.matrix_rank(cov)
+            cov_inv = np.linalg.inv(cov)
+            exp_value = -0.5 * np.matmul((x-mean).transpose(), np.matmul(cov_inv,x-mean))
+            return np.exp(exp_value)/(np.power(2*np.pi, 0.5*D)*np.sqrt(np.linalg.det(cov_inv)))
+        """ Compute log likelihood """
+        N, D = x.shape
+        loglike = 0.0
+        for n in range(0, N):
+            px = 0.0
+            for z in range(0, self.n_cluster):
+                px += self.pi_k[z] * multivariate_gaussian_pdf(x[n], self.means[z], self.variances[z])
+            loglike += np.log(px)
+        return float(loglike)
         # DONOT MODIFY CODE BELOW THIS LINE
