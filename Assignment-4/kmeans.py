@@ -52,7 +52,6 @@ class KMeans():
                 R[n] = np.argmin( distance_xn )
                 J_new += distance_xn[ R[n] ]
             """ Check if significant J change """
-            print("Jnew=%.2f Jold=%.2f" % (J_new, J_old))
             if np.abs(J_new-J_old) < N*self.e:
                 return (mu_k, np.array(R), i)
             else:
@@ -62,12 +61,6 @@ class KMeans():
                 matches = np.vectorize(lambda x: 1 if x==k else 0)
                 return matches(arr)
             for k in range(0, self.n_cluster):
-                #print("cluster=", k)
-                #print("x=", x)
-                #print("R=", R)
-                #print("Rbool=", pick_cluster(R, k))
-                #print("to sum=", (x.transpose()*pick_cluster(R,k)).transpose() )
-                #kkk=input('')
                 upd = np.sum( (x.transpose()*pick_cluster(R,k)).transpose(), axis=0 )
                 divide = np.sum(pick_cluster(R,k))
                 if not divide == 0:
