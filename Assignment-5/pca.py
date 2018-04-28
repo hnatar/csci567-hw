@@ -45,7 +45,7 @@ def decompress(Y = np.array([]), M = np.array([])):
     Returns:
     - X_hat: Reconstructed matrix with shape N x D where N is the number of 
          examples and D is the dimensionality of each example before 
-         compression.33
+         compression.
     """
     X_hat = np.array([])
 
