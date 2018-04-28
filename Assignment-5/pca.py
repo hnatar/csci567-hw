@@ -21,7 +21,15 @@ def pca(X = np.array([]), no_dims = 50):
     M = np.array([])
 
     """TODO: write your code here"""
-    
+    S = np.matmul(X.transpose(), X)
+    """ numpy function returns eigenvalues in ascending order """
+    eig_val, eig_vec = np.linalg.eigh(S)
+    eig_val, eig_vec = np.flip(eig_val, axis=0), np.flip(eig_vec, axis=1)
+    """ ensure vectors are normalized, just in case """
+    for i in range(0, no_dims):
+    	eig_vec[:, i] /= np.linalg.norm(eig_vec[:, i])
+    M = eig_vec[:, :no_dims]
+    Y = np.matmul(X, M)
     return Y, M
 
 def decompress(Y = np.array([]), M = np.array([])):
@@ -37,12 +45,12 @@ def decompress(Y = np.array([]), M = np.array([])):
     Returns:
     - X_hat: Reconstructed matrix with shape N x D where N is the number of 
          examples and D is the dimensionality of each example before 
-         compression.
+         compression.33
     """
     X_hat = np.array([])
 
     """TODO: write your code here"""
-    
+    X_hat = np.matmul(Y, M.transpose())
     return X_hat
 
 def reconstruction_error(orig = np.array([]), decompressed = np.array([])):
@@ -56,7 +64,7 @@ def reconstruction_error(orig = np.array([]), decompressed = np.array([])):
     error = 0
 
     """TODO: write your code here"""
-    
+    error = np.mean( (orig-decompressed)**2 )
     return error
 
 def load_data(dataset='mnist_subset.json'):
