@@ -24,6 +24,7 @@ def forward(pi, A, B, O):
   for i in range(1, N):
     alpha[:,i] = B[:, O[i]] * np.matmul(A.transpose(), alpha[:,i-1])
   ###################################################
+  
   return alpha
 
 
